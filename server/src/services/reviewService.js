@@ -1,4 +1,5 @@
 import Groq from "groq-sdk";
+import Review from "../models/reviewSchema.js";
 
 let groq = null;
 
@@ -31,7 +32,7 @@ For each issue found:
 
 If code is secure, say so clearly. Be direct and actionable.`;
 
-export const reviewCode = async (code, language = "code") => {
+export const reviewCode = async (code, language = "javascript",filename = null,userIP =null) => {
   const groqClient = getGroqClient();
   const completion = await groqClient.chat.completions.create({
     messages: [
@@ -48,8 +49,37 @@ export const reviewCode = async (code, language = "code") => {
     temperature: 0.3,
   });
 
+  const reviewText = completion.choices[0].message.content; 
+
+  const ReviewDoc = await Review.create({
+    code,
+    language,
+    review: reviewText,
+    filename,
+    userIP,
+    timestamp: new Date()
+  })
+
   return {
-    review: completion.choices[0].message.content,
-    timestamp: new Date().toISOString(),
+    id: ReviewDoc._id,
+    review: reviewText,
+    timestamp: ReviewDoc.timestamp
   };
 };
+
+export const getReviewById = async (id) => {
+  const review = await Review.findById(id);
+  if (!review) {
+    throw new Error("Review not found");
+  }
+  return review;
+};
+
+export const getReviewHistory = async (id) =>{
+  const review = await Review.find()
+  .sort({timestamp: -1})
+  .limit(50)
+  .select('language filename timestamp _id');
+
+  return review;
+}

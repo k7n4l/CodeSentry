@@ -1,5 +1,5 @@
 import express from 'express';
-import { reviewCode } from '../services/reviewService.js';
+import { reviewCode, getReviewById, getReviewHistory } from '../services/reviewService.js';
 
 const router = express.Router();
 
@@ -16,6 +16,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Code too large (max 10KB)' });
     }
 
+    const userIP =req.ip ||req.connection.remoteAddress;
     // Call service
     const result = await reviewCode(code, language);
 
@@ -27,5 +28,28 @@ router.post('/', async (req, res) => {
     res.status(500).json({ error: 'Failed to review code' });
   }
 });
+
+router.get('/history', async (req,res) =>{
+  try{
+    const reviews = await getReviewHistory();
+    res.json(reviews);
+  }catch(error){
+    console.error('Error:',error)
+    res.status(500).json({error: 'Failes to fetch history'})
+  }
+});
+
+router.get('/:id', async () =>{
+  try{
+    const review  = getReviewById(req.params.id)
+    res.json(review);
+    if(!review){
+      return res.status(404).json({error: 'Review not found'})
+    }
+  }catch(error){
+    console.error('Error:',error)
+    res.status(500).json({error: 'Failes to fetch history'})
+  }
+})
 
 export default router;
