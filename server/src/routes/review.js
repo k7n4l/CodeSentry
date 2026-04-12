@@ -1,55 +1,58 @@
-import express from 'express';
-import { reviewCode, getReviewById, getReviewHistory } from '../services/reviewService.js';
+import express from "express";
+import {
+  reviewCode,
+  getReviewById,
+  getReviewHistory,
+} from "../services/reviewService.js";
 
 const router = express.Router();
 
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const { code, language } = req.body;
-    
+
     // Validation
     if (!code) {
-      return res.status(400).json({ error: 'No code provided' });
+      return res.status(400).json({ error: "No code provided" });
     }
 
     if (code.length > 10000) {
-      return res.status(400).json({ error: 'Code too large (max 10KB)' });
+      return res.status(400).json({ error: "Code too large (max 10KB)" });
     }
 
-    const userIP =req.ip ||req.connection.remoteAddress;
+    const userIP = req.ip || req.connection.remoteAddress;
     // Call service
     const result = await reviewCode(code, language);
 
     // Return response
     res.json(result);
-    
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Failed to review code' });
+    console.error("Error:", error);
+    res.status(500).json({ error: "Failed to review code" });
   }
 });
 
-router.get('/history', async (req,res) =>{
-  try{
+router.get("/history", async (req, res) => {
+  try {
     const reviews = await getReviewHistory();
     res.json(reviews);
-  }catch(error){
-    console.error('Error:',error)
-    res.status(500).json({error: 'Failes to fetch history'})
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Failes to fetch history" });
   }
 });
 
-router.get('/:id', async () =>{
-  try{
-    const review  = getReviewById(req.params.id)
-    res.json(review);
-    if(!review){
-      return res.status(404).json({error: 'Review not found'})
+router.get("/:id", async (req, res) => {
+  try {
+    const review = await getReviewById(req.params.id);
+    if (!review) {
+      return res.status(404).json({ error: "Review not found" });
     }
-  }catch(error){
-    console.error('Error:',error)
-    res.status(500).json({error: 'Failes to fetch history'})
+    res.json(review);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Failes to fetch history" });
   }
-})
+});
 
 export default router;

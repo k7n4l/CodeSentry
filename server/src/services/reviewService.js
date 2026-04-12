@@ -32,7 +32,12 @@ For each issue found:
 
 If code is secure, say so clearly. Be direct and actionable.`;
 
-export const reviewCode = async (code, language = "javascript",filename = null,userIP =null) => {
+export const reviewCode = async (
+  code,
+  language = "javascript",
+  filename = null,
+  userIP = null,
+) => {
   const groqClient = getGroqClient();
   const completion = await groqClient.chat.completions.create({
     messages: [
@@ -49,21 +54,21 @@ export const reviewCode = async (code, language = "javascript",filename = null,u
     temperature: 0.3,
   });
 
-  const reviewText = completion.choices[0].message.content; 
+  const reviewText = completion.choices[0].message.content;
 
   const ReviewDoc = await Review.create({
     code,
     language,
     review: reviewText,
-    filename,
+    fileName: filename,
     userIP,
-    timestamp: new Date()
-  })
+    timestamp: new Date(),
+  });
 
   return {
     id: ReviewDoc._id,
     review: reviewText,
-    timestamp: ReviewDoc.timestamp
+    timestamp: ReviewDoc.timestamp || ReviewDoc.createdAt,
   };
 };
 
@@ -72,14 +77,23 @@ export const getReviewById = async (id) => {
   if (!review) {
     throw new Error("Review not found");
   }
-  return review;
+  // Ensure timestamp is properly included
+  return {
+    _id: review._id,
+    code: review.code,
+    language: review.language,
+    review: review.review,
+    fileName: review.fileName,
+    timestamp: review.timestamp,
+    userIP: review.userIP,
+  };
 };
 
-export const getReviewHistory = async (id) =>{
+export const getReviewHistory = async (id) => {
   const review = await Review.find()
-  .sort({timestamp: -1})
-  .limit(50)
-  .select('language filename timestamp _id');
+    .sort({ timestamp: -1 })
+    .limit(50)
+    .select("language fileName timestamp _id");
 
   return review;
-}
+};
