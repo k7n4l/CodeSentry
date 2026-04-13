@@ -8,15 +8,24 @@ const reviewSchema = new mongoose.Schema({
   language: {
     type: String,
     require: true,
-    enum: ["javascript", "python", "java", "php", "sql", "other"],
+    enum: ["javascript", "python", "java", "php", "sql", "c", "cpp","go","rust", "other"],
   },
   review: {
     type: String,
     require: true,
   },
+  title:{
+    type: String,
+    default: "Untitled Review",
+  },
   fileName: {
     type: String,
     default: null,
+  },  
+  severityLevel: {
+    type: String,
+    enum: ['Critical', 'High', 'Medium', 'Low', 'Safe'],
+    default: 'Medium'
   },
   timestamp: {
     type: Date,

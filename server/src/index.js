@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import reviewRouter from "./routes/review.js";
 import {connectDB} from "./configs/db.js"
+import uploadRouter from "./routes/upload.js"
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/review", reviewRouter);
+app.use("/upload", uploadRouter);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
