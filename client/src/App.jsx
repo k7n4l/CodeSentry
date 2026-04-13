@@ -1,8 +1,9 @@
 import React from "react";
 import { useState } from "react";
 import CodeEditor from "./components/CodeEditor";
-import ReviewResults from "./components/ReviewResult";
+import ReviewResults from "./components/reviewResult";
 import ReviewHistory from "./components/ReviewHistory";
+import logo from "./assets/logo.png";
 import "./App.css";
 
 function App() {
@@ -24,8 +25,7 @@ function App() {
   return (
     <div className="App">
       <header>
-        <h1>🛡️ CodeSentry</h1>
-        <p>AI-Powered Security Code Review</p>
+        <img src={logo} alt="CodeSentry Logo" className="logo" />
       </header>
 
       <div className="main-content">
