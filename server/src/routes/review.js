@@ -4,8 +4,11 @@ import {
   getReviewById,
   getReviewHistory,
 } from "../services/reviewService.js";
+import { authenticate } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.use(authenticate);
 
 router.post("/", async (req, res) => {
   try {
@@ -21,10 +24,9 @@ router.post("/", async (req, res) => {
     }
 
     const userIP = req.ip || req.connection.remoteAddress;
-    // Call service
+
     const result = await reviewCode(code, language);
 
-    // Return response
     res.json(result);
   } catch (error) {
     console.error("Error:", error);

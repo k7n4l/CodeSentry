@@ -100,7 +100,7 @@ export const reviewCode = async (
   code,
   language = "javascript",
   fileName = null,
-  userIP = null,
+  userId
 ) => {
   const groqClient = getGroqClient();
   const completion = await groqClient.chat.completions.create({
@@ -132,13 +132,13 @@ export const reviewCode = async (
 
   // Save to MongoDB
   const reviewDoc = await Review.create({
+    userId,
     code,
     language,
     review: reviewText,
     title: fileName || title,
     fileName,
     severityLevel: severity,
-    userIP,
     timestamp: new Date(),
   });
 
@@ -154,8 +154,8 @@ export const reviewCode = async (
   };
 };
 
-export const getReviewHistory = async () => {
-  const reviews = await Review.find()
+export const getReviewHistory = async (userId) => {
+  const reviews = await Review.find({ userId })
     .sort({ timestamp: -1 })
     .limit(50)
     .select("title language fileName severityLevel timestamp _id");
@@ -163,7 +163,7 @@ export const getReviewHistory = async () => {
   return reviews;
 };
 
-export const getReviewById = async (id) => {
-  const review = await Review.findById(id);
+export const getReviewById = async (id, userId) => {
+  const review = await Review.findOne({ _id: id, userId });
   return review;
 };

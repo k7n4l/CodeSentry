@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import reviewRouter from "./routes/review.js";
 import {connectDB} from "./configs/db.js"
 import uploadRouter from "./routes/upload.js"
+import authRouter from "./routes/auth.js"
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use("/auth", authRouter);
 app.use("/review", reviewRouter);
 app.use("/upload", uploadRouter);
 

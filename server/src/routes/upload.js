@@ -1,8 +1,11 @@
 import express from "express";
 import multer from "multer";
 import { reviewCode } from "../services/reviewService.js";
+import { authenticate } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+router.use(authenticate);
+
 const storage = multer.memoryStorage();
 const upload = multer({ 
     storage,
