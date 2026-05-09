@@ -50,9 +50,10 @@ export default function CodeEditor({ onReviewComplete }) {
         formData.append('file',selectedFile);
         formData.append('language',language);
 
-        response = await axios.post('http://localhost:3001/upload',formData,{
+        response = await axios.post('http://localhost:3001/upload', formData, {
           headers: {
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
       }
@@ -65,7 +66,7 @@ export default function CodeEditor({ onReviewComplete }) {
       onReviewComplete(response.data);
     } catch (error) {
       console.error('Review failed:', error);
-      alert(error.response?.data?.error||'Failed to review code. Check console for details.');
+      alert('Failed to review code. Check console for details.');
     } finally {
       setLoading(false);
     }

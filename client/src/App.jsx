@@ -1,44 +1,31 @@
-import React from "react";
-import { useState } from "react";
-import CodeEditor from "./components/CodeEditor";
-import ReviewResults from "./components/reviewResult";
-import ReviewHistory from "./components/ReviewHistory";
-import logo from "./assets/logo.png";
-import "./App.css";
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
 
 function App() {
-  const [reviewResult, setReviewResult] = useState(null);
-  const [selectedHistoryReview, setSelectedHistoryReview] = useState(null);
-
-  const handleReviewComplete = (result) => {
-    setReviewResult(result);
-    setSelectedHistoryReview(null); // Clear selected history review when a new review is completed
-  };
-
-  const handleViewHistoryReview = (review) => {
-    setSelectedHistoryReview(review);
-    setReviewResult(null); // Clear current review result when viewing a history review
-  };
-
-  const displayResult = selectedHistoryReview || reviewResult;
-
   return (
-    <div className="App">
-      <header>
-        <img src={logo} alt="CodeSentry Logo" className="logo" />
-      </header>
-
-      <div className="main-content">
-        <div className="left-panel">
-          <CodeEditor onReviewComplete={handleReviewComplete} />
-          {displayResult && <ReviewResults result={displayResult} />}
-        </div>
-
-        <div className="right-panel">
-          <ReviewHistory onSelectReview={handleViewHistoryReview} />
-        </div>
-      </div>
-    </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="/" element={<Navigate to="/dashboard" />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
+
 export default App;

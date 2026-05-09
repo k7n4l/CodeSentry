@@ -25,7 +25,7 @@ router.post("/", async (req, res) => {
 
     const userIP = req.ip || req.connection.remoteAddress;
 
-    const result = await reviewCode(code, language);
+    const result = await reviewCode(code, language, null, req.userId);
 
     res.json(result);
   } catch (error) {
@@ -36,7 +36,7 @@ router.post("/", async (req, res) => {
 
 router.get("/history", async (req, res) => {
   try {
-    const reviews = await getReviewHistory();
+    const reviews = await getReviewHistory(req.userId);
     res.json(reviews);
   } catch (error) {
     console.error("Error:", error);
@@ -46,7 +46,7 @@ router.get("/history", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const review = await getReviewById(req.params.id);
+    const review = await getReviewById(req.params.id, req.userId);
     if (!review) {
       return res.status(404).json({ error: "Review not found" });
     }

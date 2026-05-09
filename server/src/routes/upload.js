@@ -32,7 +32,7 @@ router.post('/',upload.single('file'),async (req,res) =>{
         const language = req.body.language ||'other'
         const userIP = req.ip ||req.connection.remoteAddress;
 
-        const result = await reviewCode(code , language , fileName, userIP);
+        const result = await reviewCode(code, language, fileName, req.userId);
         res.json(result);
     }catch(error){
         console.error('Upload Error: ',error);
