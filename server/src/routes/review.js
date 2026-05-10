@@ -5,6 +5,7 @@ import {
   getReviewHistory,
 } from "../services/reviewService.js";
 import { authenticate } from "../middleware/authMiddleware.js";
+import  Review from '../models/reviewSchema.js'
 
 const router = express.Router();
 
@@ -55,6 +56,25 @@ router.get("/:id", async (req, res) => {
     console.error("Error:", error);
     res.status(500).json({ error: "Failes to fetch history" });
   }
+});
+
+router.delete('/:id',async (req,res)=>{
+  try{
+    const review = await Review.findOneAndDelete({
+      _id: req.params.id,
+      userId:req.userId
+    });
+    if(!review){
+      return res.status(404).json({error:'Review not found'});
+    }
+    res.json({
+      success:true,
+      message:'Review deleted'
+    })
+  }catch(error){
+    console.error('Error: ',error)
+    res.status(500).json({error:'Failed to delete review'})
+  };
 });
 
 export default router;
