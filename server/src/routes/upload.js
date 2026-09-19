@@ -22,7 +22,7 @@ const upload = multer({
     }
 });
 
-router.post('/',upload.single('file'),async (req,res) =>{
+router.post('/',upload.single('file'),async (req,res,next) =>{
     try{
         if(!req.file){
             return res.status(400).json({error: 'No file uploaded'})
@@ -30,13 +30,11 @@ router.post('/',upload.single('file'),async (req,res) =>{
         const code = req.file.buffer.toString('utf-8')
         const fileName = req.file.originalname;
         const language = req.body.language ||'other'
-        const userIP = req.ip ||req.connection.remoteAddress;
 
         const result = await reviewCode(code, language, fileName, req.userId);
         res.json(result);
     }catch(error){
-        console.error('Upload Error: ',error);
-        res.status(500).json({error: error.message || 'Failed to process file'})
+        next(error);
     }
 });
 export default router;

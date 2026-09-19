@@ -2,8 +2,8 @@ import express from 'express'
 import { register, login, getCurrentUser } from '../controllers/authController.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 import User from '../models/User.js'
-import bcrypt from 'bcryptjs'
 import Review from '../models/reviewSchema.js';
+import { isStrongPassword } from '../utils/validators.js';
 
 const router = express.Router();
 
@@ -31,6 +31,15 @@ router.put('/profile', authenticate, async (req, res) => {
 router.put('/password', authenticate, async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: 'Current password and new password are required' });
+        }
+
+        const passwordCheck = isStrongPassword(newPassword);
+        if (!passwordCheck.valid) {
+            return res.status(400).json({ error: passwordCheck.message });
+        }
 
         const user = await User.findById(req.userId)
         const isValid = await user.comparePassword(currentPassword);

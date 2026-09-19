@@ -1,6 +1,16 @@
 import Groq from "groq-sdk";
 import Review from "../models/reviewSchema.js";
 
+export const MAX_CODE_LENGTH = 10000;
+
+export class CodeTooLargeError extends Error {
+  constructor(message = `Code too large (max ${MAX_CODE_LENGTH} chars)`) {
+    super(message);
+    this.name = "CodeTooLargeError";
+    this.statusCode = 400;
+  }
+}
+
 let groq = null;
 
 const getGroqClient = () => {
@@ -102,6 +112,17 @@ export const reviewCode = async (
   fileName = null,
   userId
 ) => {
+  if (typeof code !== "string" || code.trim().length === 0) {
+    const error = new Error("No code provided");
+    error.name = "ValidationError";
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (code.length > MAX_CODE_LENGTH) {
+    throw new CodeTooLargeError();
+  }
+
   const groqClient = getGroqClient();
   const completion = await groqClient.chat.completions.create({
     messages: [
@@ -120,15 +141,8 @@ export const reviewCode = async (
 
   const reviewText = completion.choices[0].message.content;
 
-  console.log("=== AI RESPONSE ===");
-  console.log(reviewText.substring(0, 300)); // Debug: print first 300 chars
-  console.log("==================");
-
   const severity = extractSeverity(reviewText);
   const title = extractTitle(reviewText);
-
-  console.log("Extracted Severity:", severity);
-  console.log("Extracted Title:", title);
 
   // Save to MongoDB
   const reviewDoc = await Review.create({

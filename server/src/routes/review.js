@@ -11,27 +11,15 @@ const router = express.Router();
 
 router.use(authenticate);
 
-router.post("/", async (req, res) => {
+router.post("/", async (req, res, next) => {
   try {
     const { code, language } = req.body;
-
-    // Validation
-    if (!code) {
-      return res.status(400).json({ error: "No code provided" });
-    }
-
-    if (code.length > 10000) {
-      return res.status(400).json({ error: "Code too large (max 10KB)" });
-    }
-
-    const userIP = req.ip || req.connection.remoteAddress;
 
     const result = await reviewCode(code, language, null, req.userId);
 
     res.json(result);
   } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "Failed to review code" });
+    next(error);
   }
 });
 
@@ -45,7 +33,7 @@ router.get("/history", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req, res, next) => {
   try {
     const review = await getReviewById(req.params.id, req.userId);
     if (!review) {
@@ -53,12 +41,11 @@ router.get("/:id", async (req, res) => {
     }
     res.json(review);
   } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "Failes to fetch history" });
+    next(error);
   }
 });
 
-router.delete('/:id',async (req,res)=>{
+router.delete('/:id',async (req,res,next)=>{
   try{
     const review = await Review.findOneAndDelete({
       _id: req.params.id,
@@ -72,8 +59,7 @@ router.delete('/:id',async (req,res)=>{
       message:'Review deleted'
     })
   }catch(error){
-    console.error('Error: ',error)
-    res.status(500).json({error:'Failed to delete review'})
+    next(error);
   };
 });
 

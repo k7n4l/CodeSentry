@@ -8,16 +8,16 @@ const reviewSchema = new mongoose.Schema({
   },
   code: {
     type: String,
-    require: true,
+    required: true,
   },
   language: {
     type: String,
-    require: true,
+    required: true,
     enum: ["javascript", "python", "java", "php", "sql", "c", "cpp","go","rust", "other"],
   },
   review: {
     type: String,
-    require: true,
+    required: true,
   },
   title:{
     type: String,
@@ -35,10 +35,6 @@ const reviewSchema = new mongoose.Schema({
   timestamp: {
     type: Date,
     default: Date.now,
-  },
-  userIP: {
-    type: String,
-    default: null,
   }
 });
 export default mongoose.model("Review",reviewSchema);

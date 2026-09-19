@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { isStrongPassword } from '../utils/validators.js';
 
 const JWT_SECRET = process.env.JWT_SECRET
 const JWT_EXPIRES_IN = '7d';
@@ -15,8 +16,9 @@ export const register = async (req, res) => {
         if (!name || !email || !password) {
             return res.status(400).json({ error: 'Please provide all fields' });
         }
-        if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*]/.test(password)) {
-            return res.status(400).json({ error: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character' });
+        const passwordCheck = isStrongPassword(password);
+        if (!passwordCheck.valid) {
+            return res.status(400).json({ error: passwordCheck.message });
         }
 
         const existingUser = await User.findOne({ email });
