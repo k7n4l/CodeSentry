@@ -1,14 +1,15 @@
 import express from 'express'
 import { register, login, getCurrentUser } from '../controllers/authController.js';
 import { authenticate } from '../middleware/authMiddleware.js';
+import { authLimiter } from '../middleware/rateLimiter.js';
 import User from '../models/User.js'
 import Review from '../models/reviewSchema.js';
 import { isStrongPassword } from '../utils/validators.js';
 
 const router = express.Router();
 
-router.post('/register', register)
-router.post('/login', login)
+router.post('/register', authLimiter, register)
+router.post('/login', authLimiter, login)
 router.get('/me', authenticate, getCurrentUser);
 
 //for profile update

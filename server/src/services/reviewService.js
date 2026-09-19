@@ -1,5 +1,5 @@
 import Groq from "groq-sdk";
-import Review from "../models/reviewSchema.js";
+import Review, { ALLOWED_REVIEW_LANGUAGES } from "../models/reviewSchema.js";
 
 export const MAX_CODE_LENGTH = 10000;
 
@@ -119,6 +119,14 @@ export const reviewCode = async (
     throw error;
   }
 
+  const normalizedLanguage = typeof language === "string" ? language.trim().toLowerCase() : "";
+  if (!ALLOWED_REVIEW_LANGUAGES.includes(normalizedLanguage)) {
+    const error = new Error(`Unsupported language. Allowed values: ${ALLOWED_REVIEW_LANGUAGES.join(", ")}`);
+    error.name = "ValidationError";
+    error.statusCode = 400;
+    throw error;
+  }
+
   if (code.length > MAX_CODE_LENGTH) {
     throw new CodeTooLargeError();
   }
@@ -132,10 +140,10 @@ export const reviewCode = async (
       },
       {
         role: "user",
-        content: `Review this ${language} code for security vulnerabilities:\n\n\`\`\`${language}\n${code}\n\`\`\``,
+        content: `Review this ${normalizedLanguage} code for security vulnerabilities:\n\n\`\`\`${normalizedLanguage}\n${code}\n\`\`\``,
       },
     ],
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-120b",
     temperature: 0.3,
   });
 
@@ -148,7 +156,7 @@ export const reviewCode = async (
   const reviewDoc = await Review.create({
     userId,
     code,
-    language,
+    language: normalizedLanguage,
     review: reviewText,
     title: fileName || title,
     fileName,

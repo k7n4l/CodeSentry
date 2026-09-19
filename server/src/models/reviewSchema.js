@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+export const ALLOWED_REVIEW_LANGUAGES = ["javascript", "python", "java", "php", "sql", "c", "cpp", "go", "rust", "other"];
+
 const reviewSchema = new mongoose.Schema({
     userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -13,7 +15,7 @@ const reviewSchema = new mongoose.Schema({
   language: {
     type: String,
     required: true,
-    enum: ["javascript", "python", "java", "php", "sql", "c", "cpp","go","rust", "other"],
+    enum: ALLOWED_REVIEW_LANGUAGES,
   },
   review: {
     type: String,

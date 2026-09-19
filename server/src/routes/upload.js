@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import { reviewCode } from "../services/reviewService.js";
 import { authenticate } from "../middleware/authMiddleware.js";
+import { strictLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 router.use(authenticate);
@@ -17,12 +18,15 @@ const upload = multer({
         if(allowedextension.includes(ext)){
             cb(null,true);
         }else{
-            cb(new Error('Invalid file type. Only code files allowed.'))
+            const error = new Error('Invalid file type. Only code files allowed.');
+            error.name = 'ValidationError';
+            error.statusCode = 400;
+            cb(error);
         }
     }
 });
 
-router.post('/',upload.single('file'),async (req,res,next) =>{
+router.post('/', strictLimiter, upload.single('file'), async (req,res,next) =>{
     try{
         if(!req.file){
             return res.status(400).json({error: 'No file uploaded'})

@@ -5,13 +5,14 @@ import {
   getReviewHistory,
 } from "../services/reviewService.js";
 import { authenticate } from "../middleware/authMiddleware.js";
+import { strictLimiter } from "../middleware/rateLimiter.js";
 import  Review from '../models/reviewSchema.js'
 
 const router = express.Router();
 
 router.use(authenticate);
 
-router.post("/", async (req, res, next) => {
+router.post("/", strictLimiter, async (req, res, next) => {
   try {
     const { code, language } = req.body;
 

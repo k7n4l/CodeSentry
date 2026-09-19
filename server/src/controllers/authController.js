@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
-import { isStrongPassword } from '../utils/validators.js';
+import { isStrongPassword, isValidEmail } from '../utils/validators.js';
 
 const JWT_SECRET = process.env.JWT_SECRET
 const JWT_EXPIRES_IN = '7d';
@@ -12,20 +12,26 @@ const generateToken = (userId) => {
 export const register = async (req, res) => {
     try {
         const { name, email, password } = req.body;
+        const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
 
         if (!name || !email || !password) {
             return res.status(400).json({ error: 'Please provide all fields' });
         }
+
+        if (!isValidEmail(normalizedEmail)) {
+            return res.status(400).json({ error: 'Please provide a valid email address' });
+        }
+
         const passwordCheck = isStrongPassword(password);
         if (!passwordCheck.valid) {
             return res.status(400).json({ error: passwordCheck.message });
         }
 
-        const existingUser = await User.findOne({ email });
+        const existingUser = await User.findOne({ email: normalizedEmail });
         if ((existingUser)) {
             return res.status(400).json({ error: 'Email already registered' })
         }
-        const user = await User.create({ name, email, password })
+        const user = await User.create({ name, email: normalizedEmail, password })
 
         const token = generateToken(user._id)
 

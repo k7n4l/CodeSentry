@@ -18,3 +18,12 @@ export const isStrongPassword = (password) => {
     message: 'Password is strong',
   };
 };
+
+export const isValidEmail = (email) => {
+  if (typeof email !== 'string') {
+    return false;
+  }
+
+  const trimmedEmail = email.trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
+};

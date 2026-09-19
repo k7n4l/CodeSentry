@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import multer from "multer";
 import mongoose from "mongoose";
+import helmet from "helmet";
 import reviewRouter from "./routes/review.js";
 import {connectDB} from "./configs/db.js"
 import uploadRouter from "./routes/upload.js"
@@ -11,12 +12,41 @@ import { CodeTooLargeError } from "./services/reviewService.js";
 
 dotenv.config();
 
+const requiredEnvVars = ["PORT", "MONGODB_URI", "JWT_SECRET", "GROQ_API_KEY"];
+const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key] || !String(process.env[key]).trim());
+
+if (missingEnvVars.length > 0) {
+  throw new Error(`Missing required environment variable(s): ${missingEnvVars.join(", ")}. Check server/.env and set them before starting the app.`);
+}
+
+const DEFAULT_CLIENT_ORIGIN = "http://localhost:5173";
+const allowedOrigins = (process.env.CLIENT_ORIGIN || DEFAULT_CLIENT_ORIGIN)
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+if (allowedOrigins.length === 0) {
+  throw new Error("CLIENT_ORIGIN must include at least one allowed origin.");
+}
+
 const app = express();
 
 connectDB();
 
-app.use(express.json());
-app.use(cors());
+app.use(helmet());
+// Keep JSON payloads well below MAX_CODE_LENGTH in reviewService.js so oversized code is rejected before Groq billing or analysis work begins.
+app.use(express.json({ limit: "200kb" }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error("Origin not allowed by CORS policy"));
+  },
+  credentials: true,
+}));
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
@@ -32,6 +62,10 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   console.error("Unhandled server error:", err);
+
+  if (err && err.message === "Origin not allowed by CORS policy") {
+    return res.status(403).json({ error: "Origin not allowed" });
+  }
 
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
@@ -65,6 +99,6 @@ app.use((err, req, res, next) => {
   return res.status(500).json({ error: "Internal server error" });
 });
 
-app.listen(process.env.PORT, () => {
+app.listen(Number(process.env.PORT), () => {
   console.log(`Server running on port ${process.env.PORT}`);
 });
